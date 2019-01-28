@@ -1,0 +1,36 @@
+from flask import Flask, request
+from flask_restful import Resource, Api
+
+app = Flask(__name__)
+api = Api(app)
+
+items = []
+
+
+class Item(Resource):
+
+    def get(self, name):
+        for item in items:
+            if item['name'] == name:
+                return item
+        return { 'item': None }, 400
+
+    def post(self, name):
+        # request.get_json(force=True)  :: if Content-Type isn't json, accept it anyway
+        # request.get_json(silent=True) :: ignore errors
+        data = request.get_json()
+        item = { 'name': name, 'price': data['price'] }
+        items.append(item)
+        return item, 201
+
+
+class Items(Resource):
+    def get(self):
+        return { 'items': items }
+
+
+api.add_resource(Item, '/item/<string:name>')
+api.add_resource(Items, '/items')
+
+if __name__ == 'main':
+    app.run(port=5000, debug=True)
